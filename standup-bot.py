@@ -1,5 +1,5 @@
 from __future__ import print_function
-from flask import Flask
+from flask import Flask, request
 
 app = Flask(__name__)
 
@@ -10,3 +10,8 @@ def command():
     user_name = request.form.get("user_name", "").strip()
     print(user_name)
     print("stuff happened")
+
+
+@app.route("/")
+def status():
+    return 'Hello World!'
