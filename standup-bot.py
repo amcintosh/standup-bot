@@ -65,8 +65,7 @@ def command():
         return
 
     if not match[1]:
-        # do a standup
-        pass
+        post_standup()
     elif match[1].strip() == "help":
         # help
         pass
