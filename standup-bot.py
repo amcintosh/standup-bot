@@ -1,4 +1,5 @@
 from __future__ import print_function
+import json
 import logging
 import os
 import random
@@ -52,7 +53,7 @@ def get_image_attachment():
 
 
 def post_standup():
-    message = "@here: %s" % slack_message
+    message = "<!here>: %s" % slack_message
     post_message(message, get_image_attachment())
 
 
@@ -81,6 +82,7 @@ def command():
         pass
     else:
         log.debug("No command: %s", incoming_text)
+    return json.dumps({})
 
 
 @app.route("/")
