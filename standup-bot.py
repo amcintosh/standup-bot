@@ -1,4 +1,5 @@
 from __future__ import print_function
+import logging
 import os
 import random
 import re
@@ -19,8 +20,14 @@ imgur_client = ImgurClient(
     os.getenv("IMGUR_CLIENT_SECRET")
 )
 
+log = logging.getLogger(__name__)
+logging.basicConfig(format='%(asctime)s - %(levelname)s: %(message)s')
+if (os.getenv("DEBUG", False) in ["true", "True", "Yes", "yes"]):
+    log.setLevel(logging.DEBUG)
+
 
 def post_message(text, attachments=[]):
+    log.debug("Sending message: %s, %s", text, attachments)
     slack_client.chat.post_message(
         channel=slack_channel,
         text=text,
@@ -35,12 +42,11 @@ def get_image_attachment():
     if len(items) < 1:
         return None
     item = random.choice(items)
-    print(item.__dir__)
     attachments = [{
             'fallback': "Standup!",
             'title': "Standup!",
             'title_link': "Standup!",
-            'image_url': item
+            'image_url': item.link
         }]
     return attachments
 
@@ -60,11 +66,11 @@ def command():
     match = pattern.findall(incoming_text, 0)[0]
 
     if not match or match[0] != "!standup":
-        print("no match")
-        print(incoming_text)
+        log.debug("No match: %s", incoming_text)
         return
 
     if not match[1]:
+        log.debug("Basic Standup")
         post_standup()
     elif match[1].strip() == "help":
         # help
@@ -73,6 +79,8 @@ def command():
         # delay
         # return json.dumps({ })
         pass
+    else:
+        log.debug("No command: %s", incoming_text)
 
 
 @app.route("/")
