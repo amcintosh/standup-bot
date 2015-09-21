@@ -4,7 +4,7 @@ import random
 import re
 from flask import Flask, request
 from imgurpython import ImgurClient
-from Slacker import Slacker
+from slacker import Slacker
 
 app = Flask(__name__)
 
@@ -56,8 +56,8 @@ def command():
     incoming_text = request.form.get("text", "").strip().lower()
 
     # find !command, but ignore <!command
-    pattern = re.compile("(!standup) ([a-zA-Z]+)")
-    match = pattern.findall(incoming_text, 0)
+    pattern = re.compile("(!standup)( [a-zA-Z ]+)?")
+    match = pattern.findall(incoming_text, 0)[0]
 
     if not match or match[0] != "!standup":
         print("no match")
@@ -67,10 +67,10 @@ def command():
     if not match[1]:
         # do a standup
         pass
-    elif match[1] == "help":
+    elif match[1].strip() == "help":
         # help
         pass
-    elif match[1] == "delay":
+    elif match[1].strip() == "delay":
         # delay
         # return json.dumps({ })
         pass
