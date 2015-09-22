@@ -111,3 +111,6 @@ def cmd_command():
     if not redis_client.get("ignore"):
         post_standup()
     redis_client.set("ignore", False)
+
+if __name__ == '__main__':
+    cmd_command()
