@@ -7,26 +7,36 @@
     "env": {
         "IMGUR_ALBUM_ID": {
             "description": "Id to imgur album of standup images.",
-            "generator": "WXDXH"
+            "value": ""
         },
-        "IMGUR_CLIENT_ID": {},
-        "IMGUR_CLIENT_SECRET": {},
+        "IMGUR_CLIENT_ID": {
+            "description": "Imgur id.",
+            "value": ""
+        },
+        "IMGUR_CLIENT_SECRET": {
+            "description": "Imgur secret.",
+            "value": ""
+        },
         "SLACK_CHANNEL": {
-        	"description": "Slack channel to post to.",
-            "generator": "#testing"
+            "description": "Slack channel to post to.",
+            "value": "#testing"
         },
         "SLACK_MESSAGE": {
-        	"description": "Message at standup time.",
-            "generator": "Shall we standup?"
+            "description": "Message at standup time.",
+            "value": "Shall we standup?"
         },
-        "SLACK_TOKEN": {},
+        "SLACK_TOKEN": {
+            "description": "Slack API token.",
+            "value": ""
+        },
         "SLACK_USERNAME": {
-        	"description": "Name of the bot.",
-            "generator": "Standup-bot"
-        },
+            "description": "Name of the bot.",
+            "value": "Standup-bot"
+        }
     },
     "addons": [
-        "heroku-redis"
+        "heroku-redis",
+        "scheduler:standard"
     ],
     "generator": "https://www.expeditedssl.com/heroku-button-maker"
 }
