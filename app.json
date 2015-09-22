@@ -1,0 +1,32 @@
+{
+    "name": "Standup-bot",
+    "description": "Remind your team when it's standup time",
+    "website": "https://github.com/amcintosh/standup-bot",
+    "repository": "https://github.com/amcintosh/standup-bot",
+    "success_url": "https://standup-bot.herokuapp.com/",
+    "env": {
+        "IMGUR_ALBUM_ID": {
+            "description": "Id to imgur album of standup images.",
+            "generator": "WXDXH"
+        },
+        "IMGUR_CLIENT_ID": {},
+        "IMGUR_CLIENT_SECRET": {},
+        "SLACK_CHANNEL": {
+        	"description": "Slack channel to post to.",
+            "generator": "#testing"
+        },
+        "SLACK_MESSAGE": {
+        	"description": "Message at standup time.",
+            "generator": "Shall we standup?"
+        },
+        "SLACK_TOKEN": {},
+        "SLACK_USERNAME": {
+        	"description": "Name of the bot.",
+            "generator": "Standup-bot"
+        },
+    },
+    "addons": [
+        "heroku-redis"
+    ],
+    "generator": "https://www.expeditedssl.com/heroku-button-maker"
+}

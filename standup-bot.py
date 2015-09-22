@@ -1,11 +1,13 @@
-from __future__ import print_function
+import datetime
 import json
 import logging
 import os
 import random
 import re
+import click
 from flask import Flask, request
 from imgurpython import ImgurClient
+import redis
 from slacker import Slacker
 
 app = Flask(__name__)
@@ -20,6 +22,9 @@ imgur_client = ImgurClient(
     os.getenv("IMGUR_CLIENT_ID"),
     os.getenv("IMGUR_CLIENT_SECRET")
 )
+
+redis_client = redis.from_url(os.getenv("REDIS_URL"))
+
 
 log = logging.getLogger(__name__)
 logging.basicConfig(format='%(asctime)s - %(levelname)s: %(message)s')
@@ -52,17 +57,25 @@ def get_image_attachment():
     return attachments
 
 
+def before_scheduled_time():
+    time_strings = os.getenv('STANDUP_TIME', "").split()
+    if len(time_strings) != 2:
+        return False
+    scheduled_time = datetime.time(time_strings[0], time_strings[1])
+    if datetime.now().time() < scheduled_time:
+        return True
+    return False
+
+
 def post_standup():
-    message = "<!here>: %s" % slack_message
+    message = "@channel: %s" % slack_message
     post_message(message, get_image_attachment())
 
 
 @app.route("/", methods=['POST'])
-def command():
-    # ignore message we sent
+def api_command():
     incoming_text = request.form.get("text", "").strip().lower()
 
-    # find !command, but ignore <!command
     pattern = re.compile("(!standup)( [a-zA-Z ]+)?")
     match = pattern.findall(incoming_text, 0)[0]
 
@@ -72,15 +85,18 @@ def command():
 
     if not match[1]:
         log.debug("Basic Standup")
+        if before_scheduled_time():
+            redis_client.set("ignore", True)
+        elif redis_client.get("ignore"):
+            redis_client.set("ignore", False)
         post_standup()
+    elif match[1].strip() == "delay":
+        redis_client.set("ignore", True)
     elif match[1].strip() == "help":
         # help
         pass
-    elif match[1].strip() == "delay":
-        # delay
-        # return json.dumps({ })
-        pass
     else:
+        # Shouldn't get here (famous last words).
         log.debug("No command: %s", incoming_text)
     return json.dumps({})
 
@@ -88,3 +104,10 @@ def command():
 @app.route("/")
 def status():
     return "%s is running." % __name__
+
+
+@click.command()
+def cmd_command():
+    if not redis_client.get("ignore"):
+        post_standup()
+    redis_client.set("ignore", False)

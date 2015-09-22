@@ -1,4 +1,6 @@
-Flask~=0.10
+click==5.1
+Flask==0.10.1
 gunicorn==19.3.0
-slacker
-imgurpython
+imgurpython==1.1.6
+redis==2.10.3
+slacker==0.7.3
