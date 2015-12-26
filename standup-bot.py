@@ -7,6 +7,7 @@ import re
 import click
 from flask import Flask, request
 from imgurpython import ImgurClient
+from imgurpython.helpers.error import ImgurClientError
 import redis
 from slacker import Slacker
 
@@ -69,7 +70,12 @@ def before_scheduled_time():
 
 def post_standup():
     message = "@channel: %s" % slack_message
-    post_message(message, get_image_attachment())
+    attachment = None
+    try:
+        attachment = get_image_attachment()
+    except ImgurClientError as e:
+        log.info("Imgur error", e)
+    post_message(message, attachment)
 
 
 @app.route("/", methods=['POST'])
@@ -93,8 +99,11 @@ def api_command():
     elif match[1].strip() == "delay":
         redis_client.set("ignore", True)
     elif match[1].strip() == "help":
-        # help
-        pass
+        message = "Standup bot commands:\n" \
+            "`!standup` - Call for standup, resetting any delay\n" \
+            "`!standup delay` - Prevent the next scheduled standup message until manually called." 
+        post_message(message)
+
     else:
         # Shouldn't get here (famous last words).
         log.debug("No command: %s", incoming_text)
