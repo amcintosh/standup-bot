@@ -33,7 +33,9 @@ if (os.getenv("DEBUG", False) in ["true", "True", "Yes", "yes"]):
     log.setLevel(logging.DEBUG)
 
 
-def post_message(text, attachments=[]):
+def post_message(text, attachments=None):
+    if attachments is None:
+        attachments = []
     log.debug("Sending message: %s, %s", text, attachments)
     slack_client.chat.post_message(
         channel=slack_channel,
