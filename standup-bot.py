@@ -101,7 +101,7 @@ def api_command():
     elif match[1].strip() == "help":
         message = "Standup bot commands:\n" \
             "`!standup` - Call for standup, resetting any delay\n" \
-            "`!standup delay` - Prevent the next scheduled standup message until manually called." 
+            "`!standup delay` - Prevent the next scheduled standup message until manually called."
         post_message(message)
 
     else:
@@ -117,9 +117,14 @@ def status():
 
 @click.command()
 def cmd_command():
-    if not redis_client.get("ignore"):
+    log.debug("Scheduled standup")
+    if datetime.date.today().isoweekday() not in range(1, 6):
+        log.debug("No standup: Weekend")
+    elif redis_client.get("ignore") == "False":
+        log.debug("No standup: Delayed")
+    else:
         post_standup()
-    redis_client.set("ignore", False)
+    redis_client.delete("ignore")
 
 if __name__ == '__main__':
     cmd_command()

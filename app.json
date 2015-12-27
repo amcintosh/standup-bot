@@ -1,7 +1,6 @@
 {
     "name": "Standup-bot",
     "description": "Remind your team when it's standup time",
-    "website": "https://github.com/amcintosh/standup-bot",
     "repository": "https://github.com/amcintosh/standup-bot",
     "success_url": "https://standup-bot.herokuapp.com/",
     "env": {
