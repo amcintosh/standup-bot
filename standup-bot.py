@@ -60,13 +60,19 @@ def get_image_attachment():
     return attachments
 
 
-def before_scheduled_time():
-    time_strings = os.getenv('STANDUP_TIME', "").split()
-    if len(time_strings) != 2:
-        return False
-    scheduled_time = datetime.time(time_strings[0], time_strings[1])
-    if datetime.datetime.now().time() < scheduled_time:
-        return True
+def set_delay():
+    redis_client.set(
+        "delayed_on", datetime.date.today().strftime("%Y-%m-%d")
+    )
+
+
+def check_delay():
+    delayed_value = redis_client.get("delayed_on")
+    if delayed_value:
+        delayed_on = datetime.datetime.strptime(
+            delayed_value.decode("utf-8"), "%Y-%m-%d")
+        if delayed_on.date() == datetime.date.today():
+            return True
     return False
 
 
@@ -93,19 +99,18 @@ def api_command():
 
     if not match[1]:
         log.debug("Basic Standup")
-        if before_scheduled_time():
-            redis_client.set("ignore", True)
-        elif redis_client.get("ignore"):
-            redis_client.set("ignore", False)
+        set_delay()
         post_standup()
     elif match[1].strip() == "delay":
-        redis_client.set("ignore", True)
+        set_delay()
         message = "Delaying upcoming standup till `!standup` called."
         post_message(message)
     elif match[1].strip() == "help":
         message = "Standup bot commands:\n" \
-            "`!standup` - Call for standup, resetting any delay.\n" \
-            "`!standup delay` - Prevent the next scheduled standup message until manually called."
+            "`!standup` - Call for standup now, and override the automatic " \
+            "message.\n" \
+            "`!standup delay` - Prevent today's automatic message. Standup " \
+            "can still be manually called."
         post_message(message)
     else:
         # Shouldn't get here (famous last words).
@@ -123,11 +128,11 @@ def cmd_command():
     log.info("Scheduled standup")
     if datetime.date.today().isoweekday() not in range(1, 6):
         log.debug("No standup: Weekend")
-    elif redis_client.get("ignore") == "False":
+    elif check_delay():
         log.info("No standup: Delayed")
     else:
         post_standup()
-    redis_client.delete("ignore")
+    redis_client.delete("delayed_on")
 
 if __name__ == '__main__':
     cmd_command()
