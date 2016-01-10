@@ -65,18 +65,18 @@ def before_scheduled_time():
     if len(time_strings) != 2:
         return False
     scheduled_time = datetime.time(time_strings[0], time_strings[1])
-    if datetime.now().time() < scheduled_time:
+    if datetime.datetime.now().time() < scheduled_time:
         return True
     return False
 
 
 def post_standup():
-    message = "@channel: %s" % slack_message
+    message = "@channel: %s\n`!standup help` for commands." % slack_message
     attachment = None
     try:
         attachment = get_image_attachment()
     except ImgurClientError as e:
-        log.info("Imgur error", e)
+        log.warn("Imgur error: %s", e)
     post_message(message, attachment)
 
 
@@ -100,12 +100,13 @@ def api_command():
         post_standup()
     elif match[1].strip() == "delay":
         redis_client.set("ignore", True)
+        message = "Delaying upcoming standup till `!standup` called."
+        post_message(message)
     elif match[1].strip() == "help":
         message = "Standup bot commands:\n" \
-            "`!standup` - Call for standup, resetting any delay\n" \
+            "`!standup` - Call for standup, resetting any delay.\n" \
             "`!standup delay` - Prevent the next scheduled standup message until manually called."
         post_message(message)
-
     else:
         # Shouldn't get here (famous last words).
         log.debug("No command: %s", incoming_text)
@@ -119,11 +120,11 @@ def status():
 
 @click.command()
 def cmd_command():
-    log.debug("Scheduled standup")
+    log.info("Scheduled standup")
     if datetime.date.today().isoweekday() not in range(1, 6):
         log.debug("No standup: Weekend")
     elif redis_client.get("ignore") == "False":
-        log.debug("No standup: Delayed")
+        log.info("No standup: Delayed")
     else:
         post_standup()
     redis_client.delete("ignore")
